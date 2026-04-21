@@ -1,0 +1,24 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          testdist
+        </Layer><Layer>
+          testdistConstpartD
+        </Layer><Layer>
+          testdistConstpart
+        </Layer><Layer>
+          testdistConstpartDB
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0x00FF00">
+            testdistConstpartMuis
+          </layer><layer color="0x0000FF">
+            testdistConstpartDMuis
+          </layer><layer color="0x00FF80">
+            testdistConstpartDBMeete2
+          </layer><layer color="0xFF0080">
+            testdistConstpartDBMeetv
+          </layer>
+        </colorOfField>
+      </displayParam>

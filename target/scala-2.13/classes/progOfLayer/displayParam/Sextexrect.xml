@@ -1,0 +1,16 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          sextexrect
+        </Layer><Layer>
+          sextexrectN
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0xFF00FF">
+            sextexrectNPriorand
+          </layer><layer color="0x00FF00">
+            sextexrectNChoose
+          </layer>
+        </colorOfField>
+      </displayParam>

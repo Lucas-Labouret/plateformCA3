@@ -16,9 +16,6 @@ import scala.jdk.CollectionConverters._
 object Dag {
   def apply[T <: DagNode[T]]() = new Dag(List[T]())
   def apply[T <: DagNode[T]](g: List[T]) = new Dag(g)
-
-
-
 }
 
 /**
@@ -30,15 +27,15 @@ object Dag {
 class Dag[T <: DagNode[T]](generators: List[T]) {
   //TODO put all the fields in the constructor to avoid recomputing when transtlatin dag[Instr] into DagInstr
 
-  /**
-   * creates empty Dag
-   */
+  /** creates empty Dag */
   def this() = this(List())
 
-  /** We create an exeption which can store the cycle
-   * in order to be able to print it nicely later
-   * nicely means with names  identifying fields in the client program */
-  class CycleException(val cycle: Vector[T]) extends Exception("cycle is detected, depth increase from left to right\n " +
+  /**
+   * We create an exeption which can store the cycle in order to be able to print it nicely later
+   * nicely means with names identifying fields in the client program
+   */
+  class CycleException(val cycle: Vector[T]) extends Exception(
+    "cycle is detected, depth increase from left to right\n " +
     "a Tranfer fields y such as defVe is used in two separate expression, e1, and e2, which then get merged in a single Transfer zone $z$.\n " +
     "furthermore e2 uses an output x produced by e1\n " +
     "as a result, the zone of x has a link from z and a link to z\n " +
@@ -47,9 +44,10 @@ class Dag[T <: DagNode[T]](generators: List[T]) {
     "fuuuuuck\n " + cycle) {}
 
 
-  /**   all the generators -maximal elements- from which all the other can be reached
+  /**
+   *   all the generators -maximal elements- from which all the other can be reached
    * TODO checks that elements in allGenerators are indeed maximal elements.
-   * */
+   */
   var allGenerators: List[T] = List() //TODO maintain nonGenerator together with allGenerator, and forget visitedL
 
   /** @return non maximal dag's element, assuming maximals have been stored in allGenerators. */

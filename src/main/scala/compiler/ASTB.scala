@@ -134,9 +134,9 @@ sealed abstract class ASTB[R <: Ring]()(implicit m: repr[R]) extends ASTBt[R] {
           val firstArg =
             if (l.firstIter(i)) v
             else l.readWithConst(sc.scanVar)
-          val iShifted = if (initUsed)
-            i - l.step
-          else i //takes into account the fact that scan's values are shifted
+          val iShifted =
+            if (initUsed) i - l.step
+            else i //takes into account the fact that scan's values are shifted
           val newEnv = env +
             (op.p1.nameP -> firstArg) +
             (op.p2.nameP -> x.asInstanceOf[ASTBt[B]].boolifyForIndexI(iShifted, l, null, env))
@@ -151,7 +151,9 @@ sealed abstract class ASTB[R <: Ring]()(implicit m: repr[R]) extends ASTBt[R] {
           val firstArg =
             if (l.firstIter(i)) v
             else l.readWithConst(sc.scanVar) //sc10 first value vaut zero
-          val iShifted = if (initUsed) i - l.step else i //takes into account the fact that scan's values are shifted
+          val iShifted =
+            if (initUsed) i - l.step
+            else i //takes into account the fact that scan's values are shifted
           val newEnv = env +
             (op.p1.nameP -> firstArg) +
             (op.p2.nameP -> x.asInstanceOf[ASTBt[B]].boolifyForIndexI(iShifted, l, null, env)) +

@@ -33,23 +33,18 @@ import scala.util.Try
 
 object DataProg {
   //val nameDirCompilCA = "src/main/java/compiledCA/" //where the compiled loops will be stored
- // val nameDirProgCA = "src/main/scala/progOfCA/" //where the compiled loops will be stored
+  //val nameDirProgCA = "src/main/scala/progOfCA/" //where the compiled loops will be stored
   //var nameCA3:String=null
   val nameDirCompilLoops = "src/main/java/compiledMacro/" //where the compiled loops will be stored
   val nameDirProgLoops = "src/main/scala/progOfmacros/" //where the source of macro will be stored
-  /** set to false after first construct, identifies the mainRoot */
-  var isRootMainVar = true
+  var isRootMainVar = true //set to false after first construct, identifies the mainRoot
 
-/** all the constant layers to be used in macros */
+  /** all the constant layers to be used in macros */
   val constLayers:HashMap[String,ConstLayer[_,_]]=new HashMap()+
-    ("defVe" -> (new ConstLayer[T[V, E], B](1, "def"))) +
-    ("defVf"->(new ConstLayer[T[V, F], B](1, "def")))
+    ("defVe" -> new ConstLayer[T[V, E], B](1, "def")) +
+    ("defVf"-> new ConstLayer[T[V, F], B](1, "def"))
   /** print a map on several small lines, instead of one big line */
   private def string[T](t: TabSymb[T], s: String): String = t.toList.grouped(4).map(_.mkString(s)).mkString("\n") + "\n"
-
-
-
-
 
   /**
    * @param f function to be compiled
@@ -62,7 +57,7 @@ object DataProg {
    *         The DFS algo of DAG visits all Delayed node recursively as soon as they are created
    *         Variables with varKind paramD and Layer are created
    ***/
-  def apply[T](f: Fundef[T],racineNommage: Named,nameCA2:String): DataProg[InfoType[_]] = {
+  def apply[T](f: Fundef[T], racineNommage: Named, nameCA2: String): DataProg[InfoType[_]] = {
     /**
      *
      * @param l list of newly visited  AST Nodes
@@ -256,7 +251,7 @@ object DataProg {
  *                when such coalescing  happens grad$d2, grad$ad1, grad$h1, grad$ad2, grad$d1, grad$h2
  *                will not appear in the symbol table,
  *                instead they will figure in the coalesc table.
- *                The locus is forgotten in the the type of stored variables in main loop,
+ *                The locus is forgotten in the type of stored variables in main loop,
  *                but is kept in the type of macroFields, DataParameters, ... for CA loops.
  *                For main loop----------
  *                The former variable, "grad", remains in the symbol table, and this holds even if no coalescing happens
@@ -274,7 +269,7 @@ class DataProg[U <: InfoType[_]](val dagis: DagInstr, val funs: iTabSymb[DataPro
   /** all the coalesced register must be defined in the symbol table */
   def allLayers: List[String] = {
     def isLayer(name: String) = tSymbVar(name).k.isLayerField
-    tSymbVar.keys.filter(isLayer(_)).toList
+    tSymbVar.keys.filter(isLayer).toList
   }
   def checkInvariant={
     def invariantLayers={ //only the main can have layers, oups, not true because we pass the defVe layers
@@ -296,8 +291,8 @@ class DataProg[U <: InfoType[_]](val dagis: DagInstr, val funs: iTabSymb[DataPro
         if (!tSymbVarExists(v) && !tSymbVarExists("p" + v) && !v.startsWith("mem["))
           throw new Exception("variable:" + v + " not present in symbol table")
     }
- invariantCoalesc;
-    invariantSingleMain;
+  invariantCoalesc
+    invariantSingleMain
     invariantVariable//}//;invariantLayers
   }
   /** the main root is characterized by the fact that it has a bug layer. */
@@ -507,7 +502,7 @@ class DataProg[U <: InfoType[_]](val dagis: DagInstr, val funs: iTabSymb[DataPro
 
     val (layerFields, macroFields) = dagis.newAffect.map(_.exp).partition(isLayerField(_)) // dagis.newAffect, stores precisely affected expression which are also nonGenerators.
     //todo newAffect has been ordered so that nbit of a variable v1 that uses a variable v2, is upbdated after v2. It may be the case that
-    // dividing into layerfields and macrofields, perturbate this order.
+    //dividing into layerfields and macrofields, perturbate this order.
     if (!dagisScheduleMatters) {
       updateTsymb(macroFields, MacroField()) // when a variable is used twice it should be evaluated in a macro => its type = MacroField,
       if (!isLeafCaLoop)
@@ -2183,9 +2178,5 @@ class DataProg[U <: InfoType[_]](val dagis: DagInstr, val funs: iTabSymb[DataPro
 
     else new DataProgLoop[InfoNbit[_]](dagis, p.funs.map { case (k, v) ⇒ k -> v.loopIfy() }, p.tSymbVar,
       paramD, paramR, coalesc, null)
-
-
   }
-
-
 }

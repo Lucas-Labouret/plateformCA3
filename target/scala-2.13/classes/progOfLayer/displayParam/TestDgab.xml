@@ -1,0 +1,22 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          testdgab
+        </Layer><Layer>
+          testdgabConstpart
+        </Layer><Layer>
+          testdgabConstpartD
+        </Layer><Layer>
+          testdgabConstpartDg
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0xFFC800">
+            testdgabConstpartDgMuis
+          </layer><layer color="0xFFFF00">
+            testdgabConstpartDgNotsmooth
+          </layer><layer color="0x80FF00">
+            testdgabConstpartMuis
+          </layer>
+        </colorOfField>
+      </displayParam>

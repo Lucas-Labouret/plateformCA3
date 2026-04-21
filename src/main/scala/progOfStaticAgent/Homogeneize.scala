@@ -18,51 +18,60 @@ import sdn.MuStruct.{setFlipSynced, setFliprioOfMoveAndFlipAfterConstr, showMust
 import sdn.Util.{addLt, addSym}
 import sdn._
 import sdntool.{addDist, addDistVor, addInsideBall, addRadius, addRect, addZone, addZoneGt, addZoneLt}
+
 object Homogeneize{
-  /** bit size for integer encoding distance to particle*/   val nbitD=4
-  /** bit size for integer encoding distance to gcenter and voronoi*/   val nbitDgv=4
-  /** bit size for integer encoding innerRadius*/   val nbitRi=4
+  /** bit size for integer encoding distance to particle*/
+  val nbitD=4
+  /** bit size for integer encoding distance to gcenter and voronoi*/
+  val nbitDgv=4
+  /** bit size for integer encoding innerRadius*/
+  val nbitRi=4
 }
+
 /**illustrate the working of repulsion combined with exploration  */
 class Homogeneize() extends LDAG with Named with BranchNamed
 {
   //val part=new Homogen()
   val part=new SpreadOnSummit()
   //val part=new Convergent()
-  showMustruct;  setFliprioOfMoveAndFlipAfterConstr();  setFlipSynced()
+  showMustruct
+  setFliprioOfMoveAndFlipAfterConstr()
+  setFlipSynced()
   //part.shoow(part.gc.flipAfterSync,part.gc.flipAfterConstr)
   showTrucPourDebugger
   part.shoow(part.vor.muis) //triggers evaluation
   part.shoow(part.gc.alreadyThere)
   //garder ce qui suit en commentaire, ca indique comment faire pour montrer l'effet d'une force via son nom, come "seize"
- // part.shoow(part.mergedMoves("seize").asInstanceOf[MoveC1].yes.empty)
-//  part.shoow(part.mergedMoves("seize").asInstanceOf[MoveC1].push)
+  //part.shoow(part.mergedMoves("seize").asInstanceOf[MoveC1].yes.empty)
+  //part.shoow(part.mergedMoves("seize").asInstanceOf[MoveC1].push)
   //part.shoow(part.mergedMoves("seize").asInstanceOf[MoveC2].no.empty)
   //part.shoow(part.mergedMoves("seize").asInstanceOf[MoveC2].no.push)
 
-  /*  part.shoow(part.vor.mergedMoves("repulse").asInstanceOf[MoveC2].yes.empty)
-   part.shoow(part.vor.mergedMoves("repulse").asInstanceOf[MoveC2].no.empty)
-   part.shoow(part.mergedMoves("repulse").asInstanceOf[MoveC2].yes.empty)
-   part.shoow(part.mergedMoves("repulse").asInstanceOf[MoveC2].no.empty)
-   part.shoow(part.vor.mergedMoves("containGcenter").asInstanceOf[MoveC2].yes.push)*/
+/*
+  part.shoow(part.vor.mergedMoves("repulse").asInstanceOf[MoveC2].yes.empty)
+  part.shoow(part.vor.mergedMoves("repulse").asInstanceOf[MoveC2].no.empty)
+  part.shoow(part.mergedMoves("repulse").asInstanceOf[MoveC2].yes.empty)
+  part.shoow(part.mergedMoves("repulse").asInstanceOf[MoveC2].no.empty)
+  part.shoow(part.vor.mergedMoves("containGcenter").asInstanceOf[MoveC2].yes.push)
+*/
   part.shoow(part.muis)
   part.shoow(part.lead.muis)
   part.vor.showMe;   part.vor.b.showMe;   part.vor.bf.showMe;  part.showMe
   part.bf.showMe;  part.b.showMe;  part.bve.showMe;  part.d.showMe; part.dgv.showMe
   part.shoowText(part.ri.muis,List()); part.ri.showMe;
- part.gc.showme;
+  part.gc.showme;
   part.prop.showMe
   part.centr.showMe
- // part.zon.showMe
+  //part.zon.showMe
   //part.shoow(part.sf.isSummit)
- // part.shoowText( part.sf.density,List())
-//  part.shoow(part.centr.notCentrForallize)
- // part.shoow(part.centr.isSummit)
- // part.centr.showMe
+  //part.shoowText( part.sf.density,List())
+  //part.shoow(part.centr.notCentrForallize)
+  //part.shoow(part.centr.isSummit)
+  //part.centr.showMe
   part.shoow(part.bve.meetE2)
   part.shoow( part.vor.isForced)
   part.shoow(part.inbl.muis);  part.inbl.showMe
- // part.shoow(part.zlt.muis,part.rect);  part.zlt.showMe;  part.shoow(part.zgt.muis);  part.zgt.showMe
+  //part.shoow(part.zlt.muis,part.rect);  part.zlt.showMe;  part.shoow(part.zgt.muis);  part.zgt.showMe
   // part.z.showMe
 }
 

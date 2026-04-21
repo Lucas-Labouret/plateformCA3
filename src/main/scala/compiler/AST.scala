@@ -20,27 +20,23 @@ import scala.collection.immutable.HashSet
  * 2- the AST of arithmetic field(ASTB)
  *
  * @tparam T type of the expression
- * @param m implicit parameter used to compute this type. */
+ * @param m implicit parameter used to compute this type.
+ */
 abstract class AST[+T]()(implicit m: repr[T]) extends DagNode[AST[_]] with Named {
-
-
-  /**
-   *
-   * @return all the AST's leaves
-   */
+  /** @return all the AST's leaves */
   def leaves(): List[AST[_]] =
     if (inputNeighbors.isEmpty) List(this)
     else inputNeighbors.flatMap(_.leaves())
 
-
-  /** if type of mym is set to repr[_] this allow covariance even if repr is not covariant */
+  /**
+   *
+   */
   val mym: repr[T] = m
 
   /** @return tabulation for printing instructions returning type T */
   def tabulations = 2
 
-  /** Builds the set of symbols which are read
-   * do not consider layer, those represent memory cells to be loaded */
+  /** Builds the set of symbols which are read do not consider layer, those represent memory cells to be loaded */
   def symbolsExcepLayers: immutable.HashSet[String] = {
    // println(this +" toto")
     this match {
@@ -81,7 +77,6 @@ abstract class AST[+T]()(implicit m: repr[T]) extends DagNode[AST[_]] with Named
       }
   */
   /**
-   *
    * @return textual representation of tree
    */
   override def toString: String =

@@ -20,12 +20,13 @@ import sdn.{Blob, BlobV, BlobVFields, BlobVe, Compar, Compar3, addBlobVfields, c
 
 /** same as GrowVorV but based on a boolVe support  MARCHE PAS*/
 class GrowBlobVe() extends Layer[(V, B)](1, "global") with BoolV  with carrySysInstr with BranchNamed with Named {
-  val is:BoolV=delayedL(this)
-  val bf=new BlobVFields(this)
-  val edge: ASTLt[E, B] =borderS(is)
-  val brd=brdin(edge,is)
-  val b=new BlobVe(this,bf.brdE,bf.brdVeIn)
-  override val next: AST[(V, B)] = this | bf.brdV & ~b.meet //we extend the blob around the border brdV, except for meeting points
+  val is: BoolV = delayedL(this)
+  val bf = new BlobVFields(this)
+  val edge: ASTLt[E, B] = borderS(is)
+  val brd = brdin(edge,is)
+  val b = new BlobVe(this, bf.brdE, bf.brdVeIn)
+  override val next: AST[(V, B)] =
+    this | bf.brdV & ~b.meet //we extend the blob around the border brdV, except for meeting points
   show(this)
   b.showMe
   bf.showMe
@@ -41,10 +42,10 @@ class GrowTest()  extends ConstLayer[V, B](1, "global")  with BranchNamed{
 /** Simple growth from V to E to V; test of in, and bordern
  * it uses transfer as a macro.
  * we believe that at least for border, and neighbor, it will be reused */
-class Growtt extends Layer[(V, B)](1, "global") with ASTLt[V, B] with BranchNamed{
+class Growtt extends Layer[(V, B)](1, "global") with ASTLt[V, B] with BranchNamed {
   val broadcasted:BoolVe = broadcast(this )//step 1 is broadcast
   val transfered :BoolEv= transferMacro(broadcasted) //step 2 is transfer
-  val n2 = reduce(orRedop[B], transfered) //(n,m,d) yzeté implicit killerest
+  val n2: BoolE = reduce(orRedop[B], transfered) //(n,m,d) yzeté implicit killerest
   val n: BoolE = existS(this);
   // val in: BoolE = inside(this);
   val brd: BoolE = borderS(this);

@@ -1,0 +1,14 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          testvoronoi
+        </Layer><Layer>
+          testvoronoiN
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0xFF00FF">
+            testvoronoiN
+          </layer>
+        </colorOfField>
+      </displayParam>

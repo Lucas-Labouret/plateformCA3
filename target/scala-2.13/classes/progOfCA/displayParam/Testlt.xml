@@ -1,0 +1,20 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          testlt
+        </Layer><Layer>
+          testltN
+        </Layer><Layer>
+          testltNToto
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0x80FF00">
+            testltNPriorand
+          </layer><layer color="0x8000FF">
+            testltNTotoSegmentof1apex
+          </layer><layer color="0x0000FF">
+            testltNTotoLtapex
+          </layer>
+        </colorOfField>
+      </displayParam>

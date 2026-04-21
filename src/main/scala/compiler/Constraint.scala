@@ -53,7 +53,7 @@ sealed abstract class Constraint(val locus:Locus)
     require(c.locus == this.locus, "intersected constraint must have identical loci")
     if (c.isInstanceOf[AllConstr] || (c == this)) this
     else if (c.card < card) c.intersect(this) // c has smallest card
-    else Schedules(HashSet.empty[Seq[Int]] ++ schedules.filter(c.verified(_)), c.locus)
+    else Schedules(HashSet.empty[Seq[Int]] ++ schedules.filter(c.verified), c.locus)
   }
 
   /** In general an isolated constraint has at least one schedule satifying it */
@@ -109,7 +109,8 @@ object Constraint {
   }
   final case class Aligned(val srcInstr:Affect[_], override val locus: Locus) extends Constraint(locus){
     var src:Zone=null  //checher la zone qui contient srcInstr.
- override def intersect(c:Constraint)={
+
+    override def intersect(c:Constraint)={
       if(c.verified(src.pickedSchedule)) this else Schedules(HashSet(), locus)
     }
     /**   The number of possible schedules checking the constraint. */

@@ -1,9 +1,8 @@
 package sdn
 
-
 import compiler.AST.{Call2, Fundef2}
 import compiler.ASTL.{sym, transfer}
-import compiler.ASTLfun.{cond, e, v}
+import compiler.ASTLfun._
 import compiler.{AST, ASTB, ASTBfun, ASTBt, ASTLfun, B, E, Locus, Ring, T, V, repr}
 import compiler.SpatialType.{BoolE, BoolEv, BoolV, BoolVe, UintVx}
 import dataStruc.{BranchNamed, Named}
@@ -16,56 +15,95 @@ import sdn.Rand
 import sdn.Util.addSym
 
 import scala.util.matching.Regex.Match
+
 /** adds the possibility of using a randomizer */
 trait rando {
-   val _rand = new Rand()  // Champ privé
-  def rand: Rand = _rand          // Getter public pour le champ
+  val _rand = new Rand()  // Champ privé
+  def rand: Rand = _rand  // Getter public pour le champ
 }
-
 
 /**
- * MoveC is a "centered move". It means that it is defined within the body support
- * it can  encodes a move on V-agents, but also Ve agents. For exemple, the effect of all is also
- * to move everywhere possible the agent..
+ * MoveC is a "centered move". It means that it is defined within the body support.
+ * It can  encodes a move on V-agents, but also Ve agents.
  */
 abstract class MoveC extends Named with BranchNamed {
-  def | (that: MoveC):MoveC
-  def restrict(cond:BoolV):MoveC
-  val triggered:BoolV
+  /**
+   * @param that another move to combine with this move
+   * @return a move that represents the combined effect of this move and that move
+   */
+  def | (that: MoveC): MoveC
+
+  /**
+   * @param cond
+   * @return a move that is the result of applying the condition `cond` to this move, effectively restricting its effect to where `cond` is true
+   */
+  def restrict(cond:BoolV): MoveC
+
+  /** true if the move has any effect (either yes or no) */
+  val triggered: BoolV
+
   /** when computing push, we selected maxprio only among the yes, we do not consider the no */
-  val triggeredYes:BoolV
-  def move2flip(is:BoolV):BoolV
+  val triggeredYes: BoolV
+
+  /**
+   * This method computes the effective flips caused by the move, taking into account both withdrawals and pushes.
+   * It should return true for vertices that would change state due to the move, and false for those that remain unchanged.
+   *
+   * @param is the current state of the agent's support
+   * @return a boolean field indicating where the move would cause flips (true for vertices that would flip)
+   */
+  def move2flip(is: BoolV): BoolV
+
   /** should remain false */
-  val bug:BoolV
+  val bug: BoolV
 }
 
-/** @param empty where to withdraw at
+/**
+ * @param empty where to withdraw at
  * @param push  where to extends towards
  * centered move with only yes
  */
 case class MoveC1 (val empty: BoolV, val push: BoolVe) extends MoveC{
-  def | (that: MoveC):MoveC = that match{
+  override def | (that: MoveC):MoveC = that match{
     case mc1:MoveC1=>MoveC1(empty|mc1.empty,push|mc1.push)
     case mc2:MoveC2=> mc2 | this
   }
-  /* adds a condition to the move*/
-  def restrict(cond:BoolV)= MoveC1(empty & cond,push & e(cond))
-  /** rand is a small proba that we do empty if its  target, or we do not push if it is not */
-  def inflechi(target:BoolV,rand:BoolV)=MoveC1(empty&(~target|rand),push& (e(rand)|neighborsSym(e(target))))
-  /* convert push to a boolV, true for vertice pointed by one of the push. NB there can be several distinct push
-  * to the same single vertice, it is sufficient that there is one.  */
-  val invade=exist(neighborsSym(push))
-  /** true if the force has an effect*/
-  val triggered=empty|invade
-  override val triggeredYes: BoolV = triggered
-  def move2flip(isV:BoolV):BoolV=cond(isV,empty,invade)
-  val bug=empty & invade
+
+  override def restrict(cond: BoolV) = MoveC1(empty & cond, push & e(cond))
+
+  /**
+   * Inflects the move by probabilistically reducing withdrawals and pushes in areas related to the target.
+   *
+   * @param target Region affected by the move
+   * @param rand Random boolean field used to soften the move
+   * @return a new MoveC1 with inflected empty and push fields
+   */
+  def inflechi(target: BoolV, rand: BoolV) =
+    MoveC1(
+      empty & (~target|rand),
+      push & ( e(rand) | neighborsSym(e(target)) )
+    )
+
+  /**
+   * Convert push to a boolV, true for vertice pointed by one of the push.
+   *
+   * @note There can be several distinct push to the same single vertice, it is sufficient that there is one.
+   */
+  val invade = exist(neighborsSym(push))
+
+  /** triggered if there is either a withdrawal or a push */
+  val triggered = empty | invade
+  val triggeredYes: BoolV = triggered
+
+  override def move2flip(isV: BoolV): BoolV = cond(isV,empty,invade)
+
+  val bug = empty & invade
 }
 
 /**
- * a centered move can take into account the fact that we can force no change
+ * A centered move can take into account the fact that we can force no change
  * @param yes for setting flip
- * @param no for specifying absence of flip ,  using either no.push or no.Empty
+ * @param no for specifying absence of flip, using either no.push or no.Empty
  */
 case class MoveC2(val yes:MoveC1,val no:MoveC1) extends MoveC{
   def | (that: MoveC):MoveC = that match {
@@ -73,74 +111,124 @@ case class MoveC2(val yes:MoveC1,val no:MoveC1) extends MoveC{
     case mc1:MoveC1=> MoveC2((yes|mc1).asInstanceOf[MoveC1],no )  //moveC1 are considered to be yesMove by default.
   }
 
-  def restrict(cond:BoolV)=MoveC2(yes.restrict(cond),no.restrict(cond))
-  override val triggered = yes.triggered | no.triggered
-  val bug= yes.triggered & no.triggered | yes.bug | no.bug
-  override val triggeredYes: BoolV = yes.triggered
-  /** bugif for a given priority, one move specifies flip, and another move spécifies not flip */
-  def move2flip(isV:BoolV):BoolV=yes.move2flip(isV) & ~ no.move2flip(isV)
+  override def restrict(cond: BoolV) = MoveC2(yes.restrict(cond), no.restrict(cond))
+
+  /** True if the move has any effect, either in the yes or no part. */
+  val triggered = yes.triggered | no.triggered
+
+  val bug = yes.triggered & no.triggered | yes.bug | no.bug
+
+  /** True if the move has a positive effect (yes part is triggered). */
+  val triggeredYes: BoolV = yes.triggered
+
+  /** Computes the effective flips caused by the move, taking into account both the "yes" and "no" components. */
+  def move2flip(isV: BoolV): BoolV = yes.move2flip(isV) & ~no.move2flip(isV)
 }
 
-
-
-import ASTLfun._
 object MoveC{
   def empty(where:BoolV)=MoveC1(where,  e(root4naming.myFalse))
   def push(where:BoolVe)=MoveC1(root4naming.myFalse, where)
 }
-/** a force is exerted on an's  support and generates a movement */
+/**
+ * A force acts on an agent support and generates a centered movement proposal.
+ *
+ * Forces are composable with:<br>
+ * - `|` to merge movement proposals,<br>
+ * - [[inflechi]] to probabilistically soften withdrawals toward a target region.
+ */
 abstract class Force extends  Named {
   /**
-   * @return an agent-centered move   * when applied, the movement produced is already centered on the agents.
+   * @param ag movable agent receiving the force
+   * @return a move generated by this force for a movable agent of type `MovableAgV`
+   *
+   * @note This method should be overridden by concrete force implementations that support `MovableAgV` agents.
    */
-  def actionV(ag:MovableAgV): MoveC= {assert(false,"force "+name+"undefined on Vagent");null}
+  def actionV(ag:MovableAgV): MoveC = {
+    assert(false,"force "+name+"undefined on Vagent")
+    null
+  }
+
   //def actionVe(ag:VeAg): MoveC={assert(false,"force "+name+"undefined on Veagent");null}
-  /** when applied, the movement produced is already centered on the agents.*/
+  /**
+   * Computes the movement generated by this force for a movable agent of any supported locus.
+   *
+   * Dispatch is done by runtime locus matching.
+   *
+   * @param ag movable agent receiving the force
+   * @return an agent-centered move
+   */
   def action (ag: MovableAg[_<:Locus]): MoveC=
     ag.locus match {
     case V() => actionV(ag.asInstanceOf[MovableAgV])
    // case T(V(),E()) => actionVe(ag.asInstanceOf[MovAgVe])
   }
+
+  /**
+   * Combines two forces into a single force.
+   *
+   * The resulting force evaluates both operands and merges their moves using `MoveC.|`.
+   *
+   * @param that force to combine with this force
+   * @return composite force equivalent to applying both forces then OR-merging results
+   */
   def | (that: Force)= {
     val myThis=this
     new Force {
       override def actionV(ag: MovableAgV): MoveC =  myThis.actionV(ag) | that.actionV(ag)
     }
   }
-  /** wherever this!that, voids with a probability half*/
-   def inflechi(target:BoolV):Force={
+
+  /**
+   * Builds a probabilistically softened variant of this force toward a target region.
+   *
+   * This helper currently assumes the underlying move is a [[MoveC1]]. It injects random bits to
+   * reduce withdrawals/pushes in target-related areas.
+   *
+   * @param target target region used to bias random softening
+   * @return derived force with stochastic inflection
+   */
+  def inflechi(target:BoolV): Force = {
     val myThis=this
-     val rnd= root4naming.addRandBit().asInstanceOf[BoolV]
-     val rnd2= root4naming.addRandBit().asInstanceOf[BoolV]
-     val rnd3= root4naming.addRandBit().asInstanceOf[BoolV]
-     new Force {
+    val rnd1 = root4naming.addRandBit().asInstanceOf[BoolV]
+    val rnd2 = root4naming.addRandBit().asInstanceOf[BoolV]
+    val rnd3 = root4naming.addRandBit().asInstanceOf[BoolV]
+    new Force {
       override def actionV(ag: MovableAgV): MoveC =
-        myThis.actionV(ag).asInstanceOf[MoveC1].inflechi(rnd&rnd2&rnd3,target) //marche seulement si le move est un moveC1
+        myThis.actionV(ag).asInstanceOf[MoveC1].inflechi(rnd1 & rnd2 & rnd3, target) //marche seulement si le move est un moveC1
     }
-  }}
+  }
+}
 
 
 
 object Force{
   /**
+   * Restricts a force to a boolean condition.
    *
-   * @param force to be restricted
-   * @param b restricting condition, should be uniform where the force is exerted
-   * @return restricted force
+   * @param f force to restrict
+   * @param b restricting condition; should be uniform where the force is exerted
+   * @return force whose generated move is conditionally restricted
    */
   def restrictF(f:Force,b:BoolV)=new Force {
     override def actionV(ag: MovableAgV): MoveC =  f.actionV(ag).restrict(b)
   }
 
   import MoveC._
-  /** produce maximum possible move, rely on random bits of priority to obtain random movement */
+  /**
+   * Force that proposes maximal movement everywhere possible on the support.
+   *
+   * It empties occupied vertices and pushes into all allowed border directions.
+   * Random priority bits then resolve effective choice in arbitration steps.
+   */
   val total:Force=new Force(){
     override def actionV(ag: MovableAgV): MoveC = MoveC1(ag.muis,ag.bf.brdVeIn)//extends and empties everywhere possible.
   }
   /**
+   * Builds a targeting force that drives occupancy toward a desired region.
    *
-   * @param cible where we want our particle to be
-   * @return creates a generic force that will let the particle exactly fills cible */
+   * @param cible target region the particle should fill
+   * @return force encouraging expansion to `cible` and withdrawal elsewhere when reachable
+   */
   def cibler(cible:BoolV):Force=new Force{
     val toCible=neighborsSym(e(cible))
     /** true if there is a target in the immediate neighborhood */
@@ -152,61 +240,63 @@ object Force{
   }
 
   /**
+   * Builds a stabilizing negative force used to cancel lower-priority movement.
    *
-   * @param stbl true if forces of lower priority should be voided
-   * @return a force that blocks movement of lower priority, so as to obtain convergence.
+   * @param stbl stability condition (true where lower priorities should be canceled)
+   * @return force generating "no" moves to promote convergence
    */
-  def stabilize(stbl:BoolV): Force = new Force() {
-      //import compiler.ASTLfun.fromBool
-      override def actionV(ag: MovableAgV): MoveC = {
-        val yes=MoveC1(root4naming.myFalse,e(root4naming.myFalse)) //force is pure negative
-        /** if stable2 , this will cancel movement of lower priority, */
-          val agblob=ag.asInstanceOf[addBlobVfields]
-        val no = MoveC1(stbl, e(stbl)& ag.bf.brdVeIn) // negative  forces
-        MoveC2(yes,no)
-      }
+  def stabilize(stbl: BoolV): Force = new Force() {
+    override def actionV(ag: MovableAgV): MoveC = {
+      val yes = MoveC1(root4naming.myFalse, e(root4naming.myFalse)) //force is pure negative
+      /** if stable2 , this will cancel movement of lower priority, */
+      val no = MoveC1(stbl, e(stbl) & ag.bf.brdVeIn) // negative  forces
+      MoveC2(yes,no)
+    }
   }
-
-
-
-
-
-
 
 /*
   val emptyZgt=(isV&zgt.muis) & exist(neighborsSym(e(isV & ~(zgt.muis))))
   val emptyZlt= (isV& ~zlt.muis) & exist(neighborsSym(e(isV & (zlt.muis))))
   val pushZlt=shrink2min1to5(neighborsSym(e(zlt.muis)))
-  val pushZgt=shrink2min1to5(neighborsSym(e(~zgt.muis)))*/
+  val pushZgt=shrink2min1to5(neighborsSym(e(~zgt.muis)))
+*/
 
   /**
+   * Builds a repulsion force guided by a propagated "greater radius" zone signal.
    *
-   * @param zoneGt signal comming from nearest Gabriel centes, true if radius of adjacent voronoi is bigger,
-   * @return force which repulse move the particles aways from this bigger voronoi,
+   * @param zoneGt signal from nearest Gabriel centers; true where adjacent Voronoi is bigger
+   * @return force pushing particles away from larger neighboring Voronoi regions
    */
-  def repulsePropagate(zoneGt:BoolV):Force = new Force{
+  def repulsePropagate(zoneGt: BoolV): Force = new Force{
     override def actionV(ag: MovableAgV): MoveC = {
       //emptying applies on tripleton or doubleton, on vertice inside zoneGt having neighbor vertices outside
-        MoveC1( ag.muis & zoneGt & exist(neighborsSym(e(ag.muis & ~ zoneGt))),
-      //we fill by looking "most away as possible from zoneGt
-      shrink2min1to5(neighborsSym(e(~zoneGt))))
+      MoveC1(ag.muis & zoneGt & exist(neighborsSym(e(ag.muis & ~zoneGt))),
+        shrink2min1to5(neighborsSym(e(~zoneGt)))) //we fill by looking "most away as possible" from zoneGt
     }
   }
   /**
+   * Builds an attraction force guided by a propagated "smaller radius" zone signal.
    *
-   * @param zoneLt signal comming from nearest Gabriel centes, true if radius of adjacent voronoi is smaller,
-   * @return force which  move the particles nearer to this smaller voronoi,
+   * @param zoneLt signal from nearest Gabriel centers; true where adjacent Voronoi is smaller
+   * @return force moving particles toward smaller neighboring Voronoi regions
    */
   def attractPropagate(zoneLt:BoolV):Force = new Force{
     override def actionV(ag: MovableAgV): MoveC = {
       //emptying applies on tripleton or doubleton, on vertice outside zoneLt having neighbor vertices inside
       MoveC1( ag.muis & ~ zoneLt & exist(neighborsSym(e(ag.muis &  zoneLt))),
-        //we fill by looking "most towards as possible to zoneLt
-        shrink2min1to5(neighborsSym(e(zoneLt))))
+        shrink2min1to5(neighborsSym(e(zoneLt)))) //we fill by looking "most towards as possible to zoneLt
     }
   }
 
-/** use density to favors occupancy of center of voronoi */
+  /**
+   * Density-guided force favoring occupancy of Voronoi high-density summit areas.
+   *
+   * The generated move promotes expansion toward denser neighbors while forbidding
+   * some low-value expansions, using a mixed positive/negative move (`MoveC2`).
+   *
+   * @param density local density descriptor
+   * @return force steering movement according to density gradients
+   */
   def seizeSummitDensity(density:UintVx)=new Force{
     override def actionV(ag:MovableAgV): MoveC= {
       val hasNearer: BoolV = exist(transfer( density.lt) & neighborsSym(e(ag.muis)))

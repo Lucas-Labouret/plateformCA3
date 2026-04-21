@@ -1,0 +1,12 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          cycle
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0x00FF00">
+            cycleN
+          </layer>
+        </colorOfField>
+      </displayParam>

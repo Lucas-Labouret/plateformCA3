@@ -164,7 +164,8 @@ trait ASTBt[+R <: Ring] extends AST[R] with MyOpB[R] with MyOpIntB[R] {
 
         // if ((x.mym.name != op.p1.mym.name && op.p1.mym.name != UISIB()) || (y.mym.name != op.p2.mym.name && op.p2.mym.name != UISIB()))
         //null//totoa throw new Exception("Faut preserver SI ou UI")
-        val newEnv = env + (op.p1.nameP -> x.asInstanceOf[ASTBg].deCallify(env)) +
+        val newEnv = env +
+          (op.p1.nameP -> x.asInstanceOf[ASTBg].deCallify(env)) +
           (op.p2.nameP -> y.asInstanceOf[ASTBg].deCallify(env))
         op.arg.asInstanceOf[ASTBg].deCallify(newEnv)
       case Call3(op, x, y, z) => //il se peut quon rajoute un affect et augmente la tsymb

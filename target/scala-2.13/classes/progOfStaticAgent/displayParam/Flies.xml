@@ -1,0 +1,14 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          flies
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0x0000FF">
+            fliesFlipafterlocalconstr
+          </layer><layer color="0xFFFF00">
+            fliesFlipofmove
+          </layer>
+        </colorOfField>
+      </displayParam>

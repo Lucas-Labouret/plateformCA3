@@ -2,6 +2,8 @@
 <project version="4">
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="plateformCA3.plateformeCA3.main" options="-parameters" />
+      <module name="plateformCA3.plateformeCA3.test" options="-parameters" />
       <module name="plateformeCA3" options="-parameters" />
     </option>
   </component>

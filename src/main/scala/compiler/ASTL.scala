@@ -36,12 +36,11 @@ object ASTL {
 
   /** delayedL reprograms delayed, in order to add the trait ASTLt[L, R] */
   def delayedL[L <: Locus, R <: Ring](_arg: => ASTLt[L, R])(implicit m: repr[(L, R)]): ASTLt[L, R] = {
-    lazy val delayed = _arg;
+    lazy val delayed = _arg
     new Delayed[(L, R)](() => delayed) with ASTLt[L, R]
   }
 
-
-
+  /** Implement structural equality for ASTL */
   trait Structural extends Product {
     @transient private lazy val cachedHash = ScalaRunTime._hashCode(this)
     override def hashCode(): Int = cachedHash

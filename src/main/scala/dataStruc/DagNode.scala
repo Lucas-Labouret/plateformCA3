@@ -83,21 +83,20 @@ trait DagNode[+T <: DagNode[T]] {
      *         radius is set to -1 when we wand to atificially add a delay,
      *         as a quick and dirty way to remove the tm1 in an affectation paramR<-tm1(exp)
      */
-
     def toStringOutputOperand(t: DataProg[InfoType[_]]): String = {
       assert(isInstanceOf[AST[_]])
       this.asInstanceOf[AST[_]] match {
         case ASTB.AffBool(name, _) =>
           val nameRad = radicalOfVar2(name);
           try{
-          val k = t.tSymbVarSafe(nameRad).k
-          if (!k.isParam) toString //affectation is done to a register local in the loop.
-          else if (k.isRadius1)
-            name + "[i-1]=" //Radius can be either 0 or 1 here we should also take into account the store.
-          else if (k.isRadiusm1)
-            name + "[i+1]=" //Radius can be either 0 or 1 here we should also take into account the store.
-          else
-            name + "[i]="
+            val k = t.tSymbVarSafe(nameRad).k
+            if (!k.isParam) toString //affectation is done to a register local in the loop.
+            else if (k.isRadius1)
+              name + "[i-1] = " //Radius can be either 0 or 1 here we should also take into account the store.
+            else if (k.isRadiusm1)
+              name + "[i+1] = " //Radius can be either 0 or 1 here we should also take into account the store.
+            else
+              name + "[i] = "
           }
           catch{
             case e:java.lang.Exception=>toString //je fait l'hypothése que on n'a pas trouvé l'id car il s'agit de nom de variable temporaraire, non stockés

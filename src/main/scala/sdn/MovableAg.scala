@@ -17,12 +17,16 @@ import sdn.Util.{addLt, addSym, randUintV}
 import sdntool.addDist
 
 import scala.collection.immutable.HashMap
-/** list the  movable-agent's methods which needs a processing dependant  on the locus L in V,E,Ve, F...
- * will be implemented by Vagent or VeAgent*/
+/**
+ * list the  movable-agent's methods which needs a processing dependant  on the locus L in V,E,Ve, F...
+ * will be implemented by Vagent or VeAgent
+ */
 trait vef[L<:Locus]{
-  /**  computes the new agent'support from flip.
+  /**
+   * computes the new agent'support from flip.
    * for V agent it is a simple xor,
-   * for Ve agents there will be a non trivial computation */
+   * for Ve agents there will be a non trivial computation
+   */
   def flip2next: AST[(L, B)]
 }
 

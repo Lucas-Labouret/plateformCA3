@@ -1,30 +1,24 @@
 package simulator
 
-import compiler.Locus.allLocus
-import compiler.{Circuit, Locus, V}
-import dataStruc.Util.{lastPathPart, lastSegment}
-import dataStruc.{Coord2D, Named, PlanarGraph}
+import compiler.{Locus, V}
+import dataStruc.Named
+import dataStruc.Util.lastSegment
 import simulator.Controller.disableBinding
-import simulator.CAtype._
 import simulator.ExampleData._
 import simulator.Medium.christal
-import simulator.Simulator.{displayParam, nameGlobalInit, nameSimulParam, simulParam}
+import simulator.Simulator.{nameGlobalInit, nameSimulParam}
 import simulator.XMLutilities._
 import simulator.colors.mainColors
-import triangulation.Vector2D
 
 import java.awt.Color
 import java.awt.Color.cyan
-import java.io.FileNotFoundException
 import java.util
 import javax.swing.{InputMap, JComponent, KeyStroke}
 import scala.collection.JavaConverters._
 import scala.collection.convert.ImplicitConversions.`map AsScala`
-import scala.collection.immutable
-import scala.collection.immutable.{HashMap, HashSet}
 import scala.swing._
-import scala.swing.event.{ButtonClicked, EditDone, Key, KeyReleased, SelectionChanged, ValueChanged}
-import scala.xml.{Attribute, Elem, Node, NodeSeq, Null, XML}
+import scala.swing.event.{ButtonClicked, SelectionChanged, ValueChanged}
+import scala.xml._
 
 /**
  *
@@ -51,7 +45,7 @@ class Controller(val nameCA: String, var globalInit: Node, val globalInitName: S
   val initName: util.HashMap[String, String] = progCA.init() //fromXMLasHashMap(displayParam, "inits", "@init")
   /** labels used to show fields which need text, such as  constraint, moves, or instructions */
   val textOfFields: Map[String, List[String]] = progCA.textOfFields().asScala.toMap
-  val partial:Map[String, String]=progCA.partial().asScala.toMap
+  val partial: Map[String, String] = progCA.partial().asScala.toMap
   /**  fields displayed as text*/
   val displayedAsText: Set[String]=textOfFields.keySet
 
@@ -67,11 +61,13 @@ class Controller(val nameCA: String, var globalInit: Node, val globalInitName: S
   val darknessInitNames: Array[Int] = (0 to 99 by  5).toArray
   val statInitNames: Array[String] = progCA.partial().map{case(k,v)=>lastSegment(k)+lastSegment(v)}.toArray
     //Circuit.theStatified
+
   /** check that global variables (layer and shown) do not share offset. */
-  def invariantFieldOffset = {
+  def invariantFieldOffset(): Unit = {
     val h: String = progCA.displayableLayerHierarchy()
 
-    def isGlobal(nameVar: String): Boolean = Named.isLayer(nameVar) || (h.contains(nameVar)) //true if needs to be allways accessible
+    def isGlobal(nameVar: String): Boolean = Named.isLayer(nameVar) || h.contains(nameVar) //true if needs to be allways accessible
+
     val varOfMyCell: Array[String] = new Array(progCA.CAmemWidth)
     for ((s, l) <- memFieldsOffset) //we check no more than two variables allocated on a given offset
       for (offset <- l) {
@@ -81,8 +77,8 @@ class Controller(val nameCA: String, var globalInit: Node, val globalInitName: S
         varOfMyCell(offset) = s
       }
     //for (i <- 0 until varOfMyCell.length)       assert(varOfMyCell(i) != null, "unusedMemoryCell " + i) there can in fact be holes in the heap
-  };
-  invariantFieldOffset
+  }
+  invariantFieldOffset()
   /** by default, if not supplied, number of lignes is 1/sqrt(2) number of columns */
   def CAheight: Int = {
     try {
@@ -109,8 +105,8 @@ class Controller(val nameCA: String, var globalInit: Node, val globalInitName: S
   private val fixed: NodeSeq = simulParam \\ "fixed"
   /** Colors of displayed layers */
   private var colorCode: Map[String, String] = fromXMLasHashMap(displayParam, "colorOfField", "@color")
-  val shown = progCA.displayableLayerHierarchy()
-  colorCode = colorCode.filter((t) => shown.contains(t._1)) //
+  val shown: String = progCA.displayableLayerHierarchy()
+  colorCode = colorCode.filter(t => shown.contains(t._1)) //
   //((s:(String,String)=>shown.contains(s._1))
 
   /** associate a color to each displayed field , fiedls names are the keys, colors are the values which need ot be decoded from hexadecimal */

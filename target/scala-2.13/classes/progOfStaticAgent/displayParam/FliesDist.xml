@@ -1,0 +1,24 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          fliesdistPartB
+        </Layer><Layer>
+          fliesdistPartD
+        </Layer><Layer>
+          fliesdistPart
+        </Layer><Layer>
+          fliesdist
+        </Layer><Layer>
+          fliesdistPartDg
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0xFF00FF">
+            fliesdistPartIsv
+          </layer><layer color="0xFFC800">
+            fliesdistPartDgMuis
+          </layer><layer color="0x000000">
+            fliesdistPartAllflipcancel
+          </layer>
+        </colorOfField>
+      </displayParam>

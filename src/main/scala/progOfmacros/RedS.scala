@@ -1,13 +1,11 @@
 package progOfmacros
 
 import compiler.AST._
-import compiler.ASTBfun.{Fundef2R, andRedop, concatRedop, minRedop, minUI, orRedop, redop, xorRedop}
+import compiler.ASTBfun.redop
 import compiler.ASTL._
 import compiler.ASTLfun._
 import compiler.Circuit.iTabSymb
-import compiler.repr.{nomB, nomCons, nomV}
-import compiler.{AST, ASTLt, B, E, F, Locus, Ring, S, SI, T, UI, V, chip, repr}
-import progOfmacros.RedS.getRedSFun
+import compiler._
 
 import scala.collection.immutable.HashMap
 

@@ -1,0 +1,26 @@
+<displayParam>
+        <expandedLayer>
+        <Layer>
+          homogeneizePartPrio
+        </Layer><Layer>
+          homogeneize
+        </Layer><Layer>
+          homogeneizePart
+        </Layer><Layer>
+          homogeneizePartDg
+        </Layer><Layer>
+          homogeneizePartD
+        </Layer>
+      </expandedLayer>
+        <colorOfField>
+          <layer color="0x0000FF">
+            homogeneizePartFlipafterlocalconstr
+          </layer><layer color="0xFF00FF">
+            homogeneizePartDgGcentereorv
+          </layer><layer color="0xFFC800">
+            homogeneizePartIsv
+          </layer><layer color="0x000000">
+            homogeneizePartDgMuis
+          </layer>
+        </colorOfField>
+      </displayParam>

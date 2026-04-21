@@ -1,11 +1,10 @@
 package simulator
 
 import compiler.Circuit
-import compiler.Circuit.{compiledCA, findPackage, naameCA, pkgCA}
-import compiler.DataProg.{nameDirCompilLoops, nameDirProgLoops}
-import dataStruc.Util.{CustomClassLoader, existInJava, getProg, hasBeenReprogrammed, loadClass}
+import compiler.Circuit.findPackage
+import dataStruc.Util.{existInJava, getProg, hasBeenReprogrammed, loadClass}
 
-import java.awt.{Font, FontMetrics}
+import java.awt.Font
 import java.io.File
 //import simulator.Simulator.SimulatorUtil.envs
 import simulator.SimulatorUtil._
@@ -13,14 +12,13 @@ import simulator.XMLutilities._
 import triangulation.Vector2D
 
 import java.awt.{Color, Polygon}
-import java.io.{FileNotFoundException, IOException}
-import java.net.URL
-import javax.swing.{ImageIcon, JFrame, JTree}
+import java.io.FileNotFoundException
+import javax.swing.ImageIcon
+import scala.collection.immutable.HashMap
+import scala.swing.BorderPanel.Position._
 import scala.swing.Swing.Icon
 import scala.swing._
 import scala.xml.{Elem, Node}
-import BorderPanel.Position._
-import scala.collection.immutable.HashMap
 /*object mySim extends Simulator
 class AppletLauncher extends JFrame {
   //super.("Eno");
@@ -29,10 +27,6 @@ class AppletLauncher extends JFrame {
   //getContentPane().add(mySim2.top;
   }*/
 object Simulator extends SimpleSwingApplication {
-
-
-
-
   /** name of Cellular automaton being simulated, to be set by method startUp, and then used by method top */
   var nameCA: String = " "
   var pkgCA:String = " "
@@ -53,10 +47,6 @@ object Simulator extends SimpleSwingApplication {
    */
   override def startup(args: Array[String]): Unit = {
     nameCA = args(0) //name of the CA program
-
-
-
-
     val racine = new File("src/main/java").getCanonicalFile
     val nomFichier = args(0)+"CA.java"
 
@@ -68,25 +58,28 @@ object Simulator extends SimpleSwingApplication {
     val maybePackage = findPackage(racine, nomFichier)
 
     maybePackage match {
-      case Some(pkg) => println(s"Fichier trouvé dans le package: $pkg");
-        pkgCA=pkg;
+      case Some(pkg) =>
+        println(s"Fichier trouvé dans le package: $pkg")
+        pkgCA=pkg
         //compiledCA(args(0),pkg)
       case None => println(s"Fichier '$nomFichier' non trouvé sous '${racine.getPath}'")
     }
 
     nameGlobalInit = args(1)
     globalInit = readXML("src/main/java/compiledCA/globalInit/" + nameGlobalInit)
-     nameSimulParam = args(2)
+    nameSimulParam = args(2)
     simulParam = readXML("src/main/java/compiledCA/simulParam/" + nameSimulParam)
     val pathDisplayParam="src/main/java/"+pkgCA+"/displayParam/"+ nameCA + ".xml"
     displayParam = try {
       // readXML(pathDisplayParam)
       readXML("src/main/java/compiledCA/displayParam/" + nameCA + ".xml")
+    } catch {
+      case _ : FileNotFoundException => readXML("src/main/java/compiledCA/displayParam/default.xml")
     }
-    catch {
-      case _: FileNotFoundException => readXML("src/main/java/compiledCA/displayParam/default.xml")
-    }
- if(args.length>3) options=args(3)
+
+    if(args.length>3)
+      options=args(3)
+
     super.startup(args)
   }
 
@@ -97,34 +90,35 @@ object Simulator extends SimpleSwingApplication {
 
   /** hierarchy of swing Jcomponents */
   def top: MainFrame = new MainFrame {
-    /** possible directories where CA can be found */
-  /*  val directories = List("compiledCA") //, "compHandCA")
+/*
+    val directories = List("compiledCA") //, "compHandCA")
     val nameCACA=nameCA+"CA"
     val possibleDir = directories.filter((s: String) => loadClass(s + "." + nameCACA) != null)  //find  the right directory
     assert(possibleDir.size > 0, nameCA + " could not be found in any of the directories " + directories)
     assert(possibleDir.size < 2, nameCA + "could  be found two times in the directories " + directories)
     val chosenDir: String = possibleDir.head //we may later have several directories for compiled CA, chosen dir will select the one containing our class
 */
-    val nameDirProgCA="src/main/scala/"+pkgCA+"/"
-    val nameDirCompilCA="src/main/java/"+pkgCA+"/"
+    /** possible directories where CA can be found */
+    val nameDirProgCA: String = "src/main/scala/"+pkgCA+"/"
+    val nameDirCompilCA: String = "src/main/java/"+pkgCA+"/"
     /** true if scala CA has been reprogrammed */
-    val reprogrammed=hasBeenReprogrammed(nameDirProgCA+nameCA.capitalize+".scala",nameDirCompilCA+nameCA+"CA.java")
+    val reprogrammed: Boolean = hasBeenReprogrammed(nameDirProgCA+nameCA.capitalize+".scala",nameDirCompilCA+nameCA+"CA.java")
     /** true if java CA has been deleted */
-    val deletedJava = !existInJava(nameDirCompilCA+nameCA+"CA.java")
+    val deletedJava: Boolean = !existInJava(nameDirCompilCA+nameCA+"CA.java")
     /** contains the loops but also many other parameters */
     val progCA: CAloops2 =
-      if(options.contains("-c")||(options.contains("-b")&&(reprogrammed||deletedJava)))  //we recompile with -c
-                // or with -b  if CA code has been deleted or reprogrammeed
-      { Circuit.pkgCA=pkgCA
-        Circuit.compiledCA(nameCA,pkgCA)  //force  compilation
-      }
-      else{ //no recompilation, we directly load the CA
-        val classCA: Class[CAloops2] = loadClass(pkgCA+"."+ nameCA +"CA")
+      if(options.contains("-c") || (options.contains("-b")&&(reprogrammed||deletedJava))) {
+        //we recompile with -c or with -b  if CA code has been deleted or reprogrammeed
+        Circuit.pkgCA = pkgCA
+        Circuit.compiledCA(nameCA, pkgCA) //force  compilation
+      } else { //no recompilation, we directly load the CA
+        val classCA: Class[CAloops2] = loadClass(pkgCA + "." + nameCA + "CA")
         //val classCA: Class[CAloops2] = loadClass(chosenDir + "." + nameCACA)
-        getProg(classCA)  //récupére le CA déja compilé et rangé
-        }
-       //will be used to create the controller, but also the browsable treeLayers.
-     /*if (options.contains("-c")||(options.contains("-b")&&(reprogrammed||deletedJava)))
+        getProg(classCA) //récupére le CA déja compilé et rangé
+        //will be used to create the controller, but also the browsable treeLayers.
+      }
+/*
+    if (options.contains("-c")||(options.contains("-b")&&(reprogrammed||deletedJava)))
       Circuit.compiledCA(nameCA)
 
     val classCA: Class[CAloops2] = loadClass(chosenDir + "." + nameCACA)
@@ -134,7 +128,8 @@ object Simulator extends SimpleSwingApplication {
     val customLoader = new CustomClassLoader(classPath)
     val classCA2: Class[CAloops2] = customLoader.findClass(chosenDir + "." + nameCACA).asInstanceOf[Class[CAloops2]]
 
-    val progCA: CAloops2=getProg(classCA2)  //récupére le CA déja compilé et rangé*/
+    val progCA: CAloops2=getProg(classCA2)  //récupére le CA déja compilé et rangé
+*/
     title = "spatial computation " + nameCA + " gateCount=" + progCA.gateCount() + " memory Width=" + progCA.CAmemWidth()
 
     /** process the signal we create controller first in order to instanciate state variable used by layerTree */
@@ -170,20 +165,20 @@ object Simulator extends SimpleSwingApplication {
        /** height of the pannel of displaying the CA */
         val CaHeight=env.medium.boundingBox.height
         val stat = new Label("stat : 0")
-        env.caPannel = new CApannel(controller.CAwidth,CaHeight /*controller.CAheight*/, env, progCA) // the number of CAlines is 1/ sqrt(2) the number of CA colomns.
-          /** allows to add widjet for each CA, such as the time */ {
+        env.caPannel = new CApannel(controller.CAwidth,CaHeight /*controller.CAheight*/, env, progCA){
+          // the number of CAlines is 1/sqrt(2) the number of CA colomns.
+          /** allows to add widjet for each CA, such as the time */
 
-
-          def updateStat(s:String) = {stat.text = s  }
-
+          def updateStat(s:String): Unit =
+            stat.text = s
         }
-          val numberPannel=new BoxPanel(Orientation.Horizontal) {
-            contents += (env.iterationLabel,stat)
-          }
-          val envPanel = new BoxPanel(Orientation.Vertical) {
-            contents += (numberPannel,env.caPannel)
-          }
-            if (env.medium.nbCol >= 30) { // if the CA has too many columns, it get displayed on multiple columns
+        val numberPannel=new BoxPanel(Orientation.Horizontal) {
+          contents += (env.iterationLabel,stat)
+        }
+        val envPanel = new BoxPanel(Orientation.Vertical) {
+          contents += (numberPannel,env.caPannel)
+        }
+        if (env.medium.nbCol >= 30) { // if the CA has too many columns, it get displayed on multiple columns
           assert(numCell % nbColPannel == 0, "we must garantee that CA whose number of columns is >=30 are displayed on multiple of nbColPannel")
           add(envPanel, constraints(numCell % nbColPannel, numCell / nbColPannel, nbColPannel, GridBagPanel.Fill.Horizontal)) //adds the pannel using the Grid layout (GridBagPnnel)
           numCell += nbColPannel
@@ -191,8 +186,9 @@ object Simulator extends SimpleSwingApplication {
         else {
           add(envPanel, constraints(numCell % nbColPannel, numCell / nbColPannel)) //adds the pannel in a single cell
           numCell += 1
-        }; numEnv += 1
-        // controller.progCA.anchorFieldInMem(env.mem)
+        }
+        numEnv += 1
+        //controller.progCA.anchorFieldInMem(env.mem)
         //should be env.init
         //controller.progCA.initLayer(env.mem)
         env.init() // could not be done in the creation of the env, because pannel was not created yet
@@ -218,10 +214,10 @@ object ExampleData {
   val playReverseIcon: ImageIcon = Icon("src/ressources/playReverse.jpg")
   val pauseNormalIcon: ImageIcon = Icon("src/ressources/pause_black.gif")
   val forwardIcon: ImageIcon = Icon("src/ressources/skip_forward_black.gif")
-  // val fastForwardIcon: ImageIcon = Icon("src/ressources/fastForwardSkip.png")
+  //val fastForwardIcon: ImageIcon = Icon("src/ressources/fastForwardSkip.png")
   //val fastForwardIcon: ImageIcon = Icon("src/ressources/skip-fast-forward-black.gif")
   val fastForwardIcon: ImageIcon = Icon("src/ressources/FFF.jpg")
- // val backwardIcon: ImageIcon = Icon("src/ressources/skip_forward_black.gif")
+  //val backwardIcon: ImageIcon = Icon("src/ressources/skip_forward_black.gif")
   val fastBackwardIcon:ImageIcon=Icon("src/ressources/RWW.jpg")
   val backwardIcon: ImageIcon = Icon("src/ressources/skip_backward_black.gif")
   val initIcon: ImageIcon = Icon("src/ressources/rewind_black.gif")

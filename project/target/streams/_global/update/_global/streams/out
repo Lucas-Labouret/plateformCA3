@@ -1,3 +1,3 @@
-[debug] not up to date. inChanged = false, force = false
-[debug] Updating ProjectRef(uri("file:/home/frederic/IdeaProjects/plateformeCA3/project/"), "plateformeca3-build")...
-[debug] Done updating ProjectRef(uri("file:/home/frederic/IdeaProjects/plateformeCA3/project/"), "plateformeca3-build")
+[debug] not up to date. inChanged = true, force = false
+[debug] Updating ProjectRef(uri("file:/var/home/uwu/prog/plateformCA3/project/"), "plateformca3-build")...
+[debug] Done updating ProjectRef(uri("file:/var/home/uwu/prog/plateformCA3/project/"), "plateformca3-build")

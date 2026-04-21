@@ -1,0 +1,34 @@
+<initMethod>
+        <inits>
+        <init>
+            center
+        </init>
+        <init>
+            points
+        </init>
+        <init>
+            randinside
+        </init>
+        <init>
+            sparse
+        </init>
+            <init>
+                border
+            </init>
+            <init>
+                sym
+            </init>
+            <init>
+            grid
+        </init>
+        <init>
+            xaxis
+        </init>
+        <init>
+            yaxis
+        </init>
+        <init>
+            true
+        </init>
+    </inits><selected rank="1" seed="6"/>
+      </initMethod>
